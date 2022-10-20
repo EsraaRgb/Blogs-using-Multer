@@ -1,6 +1,6 @@
 import nodeoutlook from 'nodejs-nodemailer-outlook'
-
-export default function sendConfirmationEmail(email,message){
+import fs from 'fs'
+export default function sendConfirmationEmail(email,message,attachments){
     nodeoutlook.sendEmail({
         auth:{
             user: "sarahaserver@outlook.com",
@@ -11,6 +11,7 @@ export default function sendConfirmationEmail(email,message){
         subject: 'Welcome !',
         html: message,
         text: 'This is text version!',
+        attachments,
     
         onError: (e) => console.log(e),
     })

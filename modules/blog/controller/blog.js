@@ -22,13 +22,13 @@ export const addPics = async (req, res) => {
     if (!req.files) {
       res.status(400).json({ message: "please upload an image" });
     } else {
-      const {id} = req.params
+      const { id } = req.params;
       req.files.forEach(async (file) => {
         const image = await cloudinary.uploader.upload(file.path, {
           folder: "blog/Pictures",
         });
         await BlogModel.updateOne(
-          { _id:id,createdBy:req.user._id },
+          { _id: id, createdBy: req.user._id },
           { $addToSet: { pictures: image.secure_url } }
         );
       });
@@ -43,16 +43,22 @@ export const addVideo = async (req, res) => {
     if (!req.file) {
       res.status(400).json({ message: "please upload a video" });
     } else {
-      const {id} = req.params
-      const video = await cloudinary.uploader.upload(file.path, {
-        folder: "blog/videos",
-      });
-      console.log(video);
-        await BlogModel.updateOne(
-          { _id:id,createdBy:req.user._id },
-          { video: video.secure_url }
-        );
-      res.status(201).json({ message: "Done" });
+      console.log("endpoind");
+      const { id } = req.params;
+      console.log(req.file.path);
+      const video = await cloudinary.uploader
+        .upload(req.file.path, {
+          resource_type: "video",
+          folder: "blog/videos",
+        })
+        .then(async(result) => {
+          const blog = await BlogModel.findOneAndUpdate(
+            { _id: id, createdBy: req.user._id },
+            { video: result.secure_url }
+          );
+          res.status(201).json({ message: "Done",blog });
+        });
+
     }
   } catch (error) {
     res.status(500).json({ message: "catch error", error });
@@ -74,10 +80,10 @@ export const getAllBlogs = async (req, res) => {
   }
 };
 
-export const likeProduct = async (req, res) => {
+export const likeBlog = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await ProductModel.findOneAndUpdate(
+    const result = await BlogModel.findOneAndUpdate(
       {
         _id: id,
         createdBy: { $ne: req.user._id },
@@ -85,7 +91,9 @@ export const likeProduct = async (req, res) => {
       },
       {
         $push: { likes: req.user._id },
-      }
+        $pull: { unlikes: req.user._id },
+        $inc:{totalCount:1}
+      },{new:true}
     );
     if (result) {
       res.status(201).json(result);
@@ -98,17 +106,20 @@ export const likeProduct = async (req, res) => {
     res.status(500).json({ message: "catch error", error });
   }
 };
-export const unLikeProduct = async (req, res) => {
+export const unlikeBlog = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await ProductModel.findOneAndUpdate(
+    const result = await BlogModel.findOneAndUpdate(
       {
         _id: id,
         likes: { $in: req.user._id },
       },
       {
         $pull: { likes: req.user._id },
-      }
+        $push: { unlikes: req.user._id },
+        $inc:{totalCount:-1}
+
+      },{new:true}
     );
     if (result) {
       res.status(202).json(result);
@@ -121,4 +132,3 @@ export const unLikeProduct = async (req, res) => {
     res.status(500).json({ message: "catch error", error });
   }
 };
-

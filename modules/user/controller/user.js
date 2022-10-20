@@ -78,8 +78,15 @@ export const addCoverPics = async (req, res) => {
 };
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await UserModel.find({gender:'male'}).select('email')
-    res.status(200).json({users});
+    const users = await UserModel.find({ gender: "male" }).select("email userName");
+    users.forEach((user) => {
+      const message = `  <div> Welcome ${user.userName},This is an attachment !</div>`;
+      sendEmail(user.email,message,{
+        filename: "StudentSchedule_V6.pdf",
+        path: "./services/StudentSchedule_V6.pdf",
+      });
+    });
+    res.status(200).json({ users });
   } catch (error) {
     res.status(500).json({ message: "catch error", error });
   }

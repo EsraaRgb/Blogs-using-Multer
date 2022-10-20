@@ -4,7 +4,7 @@ import multer from 'multer'
 export const validationTypes = {
     image: ['image/png', 'image/jpeg', 'image/jif'],
     pdf: ['application/pdf'],
-    video:['mp4']
+    video:['video/mp4']
 }
 
 export const HME = (err, req, res, next) => {
@@ -30,6 +30,6 @@ export function myMulter(customValidation) {
         }
     }
 
-    const upload = multer({ dest: 'uploads', fileFilter, storage })
+    const upload = multer({fileFilter,storage })
     return upload
 }
